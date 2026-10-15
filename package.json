@@ -1,0 +1,10 @@
+{
+  "name": "mcp-on-workers",
+  "version": "0.1.0",
+  "description": "A small Model Context Protocol server (Streamable HTTP, spec 2025-11-25) for Cloudflare Workers and any fetch based runtime.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": { "test": "vitest run", "check": "tsc --noEmit" },
+  "devDependencies": { "typescript": "^5.9.0", "vitest": "^3.2.0", "@types/node": "^24.0.0" }
+}
