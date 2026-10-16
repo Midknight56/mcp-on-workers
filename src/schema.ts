@@ -1,5 +1,4 @@
-// The part of JSON Schema the tools use, checked before a tool runs (the spec: servers "MUST validate all tool inputs").
-// Objects with typed properties, required keys, enums, string lengths, integer ranges, no extra keys when asked.
+// The subset of JSON Schema used to validate tool arguments.
 
 export interface JsonSchema {
   type?: 'object' | 'string' | 'integer' | 'number' | 'boolean' | 'array'

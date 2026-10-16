@@ -3,13 +3,12 @@
 A small Model Context Protocol server for the Streamable HTTP transport (spec 2025-11-25), made for Cloudflare Workers
 and any runtime with `fetch`, `Request` and Web Crypto. No dependencies. About 250 lines.
 
-It answers every request with one JSON object (the spec allows `application/json` instead of an SSE stream), answers
-GET with 405 (no server stream), and keeps sessions stateless: a session id is signed with HMAC, so any Worker instance
-can check it without storage.
+Responses are always a single JSON object (no SSE), GET returns 405, and sessions are stateless HMAC-signed ids, so any
+Worker instance can verify them without storage.
 
-## What the spec asks, and where it is done
+## Spec compliance
 
-| The spec (2025-11-25, basic/transports) | Here |
+| Requirement (2025-11-25, basic/transports) | Behaviour |
 | --- | --- |
 | "Servers MUST validate the Origin header"; a bad one answers 403 | `allowOrigin` option, checked first |
 | A notification or response "MUST return HTTP status code 202 Accepted with no body" | yes |
@@ -43,8 +42,8 @@ export default {
 }
 ```
 
-`context(request)` builds whatever your tools need per request (a user from the `Authorization` header, a storage
-handle). Throw from it to refuse a call with a tool error.
+`context(request)` builds whatever your tools need per request, such as the caller from the `Authorization` header.
+Throw from it to reject the call.
 
 `example/worker.ts` is a complete server with one tool.
 
@@ -52,7 +51,7 @@ handle). Throw from it to refuse a call with a tool error.
 
 ```
 npm install
-npm test        # the protocol rules above, as unit tests
+npm test
 ```
 
 ## Licence

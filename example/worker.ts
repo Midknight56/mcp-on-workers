@@ -1,5 +1,4 @@
-// A complete MCP server on Cloudflare Workers in one file: one tool, no state. Deploy with `npx wrangler deploy`
-// after `npx wrangler secret put SESSION_SECRET`.
+// Minimal stateless server with one tool. Set SESSION_SECRET with `wrangler secret put` before deploying.
 import { McpServer, type Tool } from '../src'
 
 interface Env { SESSION_SECRET: string }

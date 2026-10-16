@@ -1,14 +1,5 @@
-// A small Model Context Protocol server for the Streamable HTTP transport, spec version 2025-11-25
-// (https://modelcontextprotocol.io/specification/2025-11-25/basic/transports), built for Cloudflare Workers: no Node
-// APIs, no long lived connections. Every request is answered with one JSON object (the spec allows application/json
-// instead of an SSE stream), GET answers 405 (no server stream), sessions are stateless signed ids.
-//
-// What the spec asks and where it is done here:
-//   "Servers MUST validate the Origin header"                      -> checkOrigin, 403
-//   notifications and responses "MUST return HTTP status code 202"  -> handlePost
-//   "If an MCP-Session-Id is returned ... clients MUST include it"  -> session ids signed with HMAC, 400 when missing
-//   "respond to requests containing that session ID with 404"       -> an expired or forged id answers 404
-//   "invalid or unsupported MCP-Protocol-Version ... 400"           -> checkVersion
+// MCP Streamable HTTP transport (2025-11-25) for Workers. JSON responses only, no SSE stream; sessions are
+// stateless HMAC-signed ids.
 import { validate, type JsonSchema } from './schema'
 
 export const LATEST_VERSION = '2025-11-25'
@@ -36,11 +27,11 @@ export interface ServerOptions<C> {
   info: { name: string; title: string; version: string; description?: string; websiteUrl?: string }
   instructions?: string
   tools: Tool<C>[]
-  /** Secret for signing session ids. */
+  /** HMAC key for session ids. */
   secret: string
-  /** True when a browser Origin may call this server. A request with no Origin (a server or a CLI) is let through. */
+  /** Requests without an Origin header are always allowed. */
   allowOrigin(origin: string): boolean
-  /** Builds the per request context (for example the user, from the Authorization header). Throw to refuse. */
+  /** Throw to reject the request. */
   context(request: Request): Promise<C>
   now?: () => number
 }
@@ -73,7 +64,7 @@ export class McpServer<C> {
     const msg = body as RpcRequest
     if (!msg || msg.jsonrpc !== '2.0') return rpcError(400, null, ERR.invalidRequest, 'Not a JSON-RPC 2.0 message')
 
-    // A notification or a response from the client: accept with 202 and no body.
+    // Notifications and responses get a bare 202.
     if (msg.method === undefined || msg.id === undefined) {
       if (msg.method === undefined && msg.result === undefined && msg.error === undefined) return rpcError(400, null, ERR.invalidRequest, 'Empty message')
       return new Response(null, { status: 202 })
